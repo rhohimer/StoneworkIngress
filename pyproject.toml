@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "stonework-ingress"
+version = "0.1.0"
+description = "Transform enterprise data sources into the STONEWORK user-data graph"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+cli = ["click>=8.1"]
+dev = ["pytest>=7", "pytest-cov"]
+
+[project.scripts]
+sw-ingest = "stonework_ingress.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["stonework_ingress*"]
