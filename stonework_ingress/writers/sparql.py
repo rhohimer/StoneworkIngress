@@ -1,7 +1,7 @@
 """Generate SPARQL UPDATE statements from a BomManifest."""
 
 from collections import defaultdict
-from stonework_ingress.model import BomManifest, BomEntry, INVENTORY_GRAPHS
+from stonework_ingress.model import BomManifest, BomEntry
 
 _STONEWORK = "https://cyberterrain.org/ns/stonework#"
 _STONES    = "https://cyberterrain.org/ns/stones#"
@@ -11,11 +11,11 @@ _CPE       = "https://cyberterrain.org/ns/frameworks/cpe#"
 def to_insert_update(manifest: BomManifest) -> str:
     """Return a single SPARQL UPDATE inserting all SBOM and BomEntry triples.
 
-    Graph layout:
-    - SBOM metadata graph (<user-inventory/sbom/<slug>>):
+    Graph layout, both case-scoped (see model.py's sbom_graph/inventory_graph):
+    - SBOM metadata graph (<case-<id>/sbom-<slug>>):
         SoftwareBillOfMaterials IRI, serialNumber, bomFormat,
         describesInfrastructure, hasBomEntry links, Infrastructure typing.
-    - Per-type graphs (<user-inventory/software|hardware|firmware>):
+    - Per-type graphs (<case-<id>/inventory-software|hardware|firmware>):
         BomEntry IRI, installationOf → VersionedProduct, cpe:cpeName.
     """
     if not manifest.entries:
@@ -47,7 +47,7 @@ def to_insert_update(manifest: BomManifest) -> str:
     # ── Per-type inventory graphs ─────────────────────────────────────────────
     by_graph: dict[str, list[BomEntry]] = defaultdict(list)
     for entry in manifest.entries:
-        by_graph[INVENTORY_GRAPHS[entry.inventory_type]].append(entry)
+        by_graph[manifest.inventory_graphs[entry.inventory_type]].append(entry)
 
     for graph_iri, entries in by_graph.items():
         triples = []

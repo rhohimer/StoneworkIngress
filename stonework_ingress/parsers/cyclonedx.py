@@ -12,7 +12,11 @@ from stonework_ingress.model import (
 )
 
 
-def parse(content: str | bytes, infra_iri: str = DEFAULT_INFRA_IRI) -> BomManifest:
+def parse(
+    content: str | bytes,
+    infra_iri: str = DEFAULT_INFRA_IRI,
+    case_id: str | None = None,
+) -> BomManifest:
     """Parse a CycloneDX JSON document and return a BomManifest.
 
     Components without a CPE 2.3 field are silently skipped — PURL-only
@@ -29,6 +33,7 @@ def parse(content: str | bytes, infra_iri: str = DEFAULT_INFRA_IRI) -> BomManife
         serial_number=serial,
         bom_format=bom_format,
         infra_iri=infra_iri,
+        case_id=case_id,
     )
 
     seen: set[str] = set()
