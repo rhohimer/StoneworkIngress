@@ -5,10 +5,13 @@ try:
 except ImportError:
     raise SystemExit("Install the CLI extra: pip install stonework-ingress[cli]")
 
+import json
 import sys
+from pathlib import Path
 import requests
 from stonework_ingress.parsers import cyclonedx
 from stonework_ingress.writers.sparql import to_insert_update
+from stonework_ingress.converters import firewall_log
 from stonework_ingress.model import DEFAULT_INFRA_IRI
 
 
@@ -53,3 +56,23 @@ def cyclonedx(file, ag_url, repo, user, password, infra, dry_run):
     )
     resp.raise_for_status()
     click.echo(f"Inserted {len(assertions)} assertion(s) into {url}.")
+
+
+@main.command(name="firewall-log")
+@click.argument("file", type=click.Path(exists=True))
+@click.option("-o", "--output", type=click.Path(),
+              help="Write the STIX 2.1 bundle JSON here instead of stdout.")
+def firewall_log_cmd(file, output):
+    """Convert a firewall-log CSV into a STIX 2.1 bundle (Observed Data).
+
+    Prints the bundle as JSON. This command does not load it into a
+    graph itself — feed the output into a STIX 2.1 import pipeline
+    (e.g. moai's POST /api/user-graph/import/stix21) to do that.
+    """
+    bundle = firewall_log.convert_file(file)
+    text = json.dumps(bundle, indent=2)
+    if output:
+        Path(output).write_text(text, encoding="utf-8")
+        click.echo(f"Wrote {len(bundle['objects'])} STIX object(s) to {output}.", err=True)
+    else:
+        click.echo(text)
